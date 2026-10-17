@@ -3,7 +3,7 @@
 Site vitrine de la résidence **La Caroube 2** (Sidi Aïssa, Annaba) et API réutilisable par la future application mobile.
 
 **État : étapes 1 à 3 terminées** — site public, API, espace administrateur, e-mails, tests et déploiement.
-Mise en ligne : voir **[docs/DEPLOIEMENT.md](docs/DEPLOIEMENT.md)**.
+Hébergement : **Cloudflare Workers + D1 + KV**, déploiement automatique depuis GitHub. Voir **[docs/DEPLOIEMENT.md](docs/DEPLOIEMENT.md)**.
 
 > ⚠️ Ce code a été écrit sans pouvoir être exécuté (pas d'accès réseau pour installer les dépendances).
 > Seuls les modules sans dépendance (formats, en-têtes, mots de passe, limiteur, e-mails) ont pu être exécutés.
@@ -15,7 +15,7 @@ Mise en ligne : voir **[docs/DEPLOIEMENT.md](docs/DEPLOIEMENT.md)**.
 |---|---|
 | Web | Next.js 15 (App Router), React 19, TypeScript strict, Tailwind CSS 4 |
 | API | Route handlers Next.js sous `/api/v1` (JSON, versionnée) |
-| Données | PostgreSQL 16 + Prisma 6 |
+| Données | Cloudflare D1 (SQLite) + Prisma 6 (`@prisma/adapter-d1`) |
 | Validation | Zod 4 — mêmes schémas côté client et serveur |
 
 Dépendances d'exécution volontairement limitées à : `next`, `react`, `react-dom`, `@prisma/client`, `zod`.

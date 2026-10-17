@@ -11,7 +11,7 @@ CREATE TABLE "SiteSettings" (
     "officeAddress" TEXT NOT NULL,
     "seoTitle" TEXT NOT NULL,
     "seoDescription" TEXT NOT NULL,
-    "legal" JSONB NOT NULL DEFAULT {},
+    "legal" JSONB NOT NULL DEFAULT '{}',
     "updatedAt" DATETIME NOT NULL
 );
 
@@ -33,7 +33,7 @@ CREATE TABLE "Project" (
     "deliveryLabel" TEXT NOT NULL,
     "currentPhaseOrder" INTEGER NOT NULL DEFAULT 1,
     "progressUpdatedAt" DATETIME,
-    "features" JSONB NOT NULL DEFAULT [],
+    "features" JSONB NOT NULL DEFAULT '[]',
     "coverMediaId" INTEGER,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
