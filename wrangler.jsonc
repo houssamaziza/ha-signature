@@ -16,19 +16,19 @@
     {
       "binding": "DB",
       "database_name": "ha-signature",
-      "database_id": "923909d0-bb11-46b4-a77e-bf15ed6664cd",
+      "database_id": "3b0f10cc-6b1f-4db9-98a3-e175224a054d",
       "migrations_dir": "migrations"
     }
   ],
 
   // Photos et plans envoyés depuis l'administration
   "kv_namespaces": [
-    { "binding": "MEDIA", "id": "6881b8a82b2a47a583e24115a41abf70" }
+    { "binding": "MEDIA", "id": "74b39905aa574d53ba82dd0c828e3f48" }
   ],
 
   // Variables publiques (les secrets se règlent avec `wrangler secret put`)
   "vars": {
-    "SITE_URL": "https://ha-signature.houssam-aziza.workers.dev",
+    "SITE_URL": "https://ha-signature.houssam-aziza-037.workers.dev",
     "DEFAULT_PROJECT_SLUG": "la-caroube-2",
     "EMAIL_PROVIDER": "console",
     "EMAIL_FROM": "H&A Signature <noreply@hasignature.com>",
