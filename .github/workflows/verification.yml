@@ -18,6 +18,10 @@ jobs:
   verifier:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    defaults:
+      run:
+        # Chaque étape écrit aussi dans ci.log, publié sur la branche ci-logs (lecture des erreurs).
+        shell: bash -eo pipefail {0}
     steps:
       - uses: actions/checkout@v4
 
@@ -27,11 +31,13 @@ jobs:
 
       - name: Installation
         run: |
+          exec > >(tee -a "$GITHUB_WORKSPACE/ci.log") 2>&1
           if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
           npm ls next react @opennextjs/cloudflare wrangler prisma @prisma/client @prisma/adapter-d1 zod vitest --depth=0 || true
 
       - name: Prisma (client + SQL des tables)
         run: |
+          exec > >(tee -a "$GITHUB_WORKSPACE/ci.log") 2>&1
           npx prisma generate
           mkdir -p migrations
           if [ ! -s migrations/0001_init.sql ]; then
@@ -40,16 +46,24 @@ jobs:
           cat migrations/0001_init.sql
 
       - name: Typage
-        run: npx tsc --noEmit
+        run: |
+          exec > >(tee -a "$GITHUB_WORKSPACE/ci.log") 2>&1
+          npx tsc --noEmit
 
       - name: Tests
-        run: npx vitest run
+        run: |
+          exec > >(tee -a "$GITHUB_WORKSPACE/ci.log") 2>&1
+          npx vitest run
 
       - name: Construction Cloudflare (OpenNext)
-        run: npx opennextjs-cloudflare build
+        run: |
+          exec > >(tee -a "$GITHUB_WORKSPACE/ci.log") 2>&1
+          npx opennextjs-cloudflare build
 
       - name: Taille du Worker
-        run: npx wrangler deploy --dry-run --outdir .bundle | tail -n 20
+        run: |
+          exec > >(tee -a "$GITHUB_WORKSPACE/ci.log") 2>&1
+          npx wrangler deploy --dry-run --outdir .bundle | tail -n 20
 
       - name: Enregistrer package-lock.json et migrations
         if: github.ref == 'refs/heads/main'
@@ -61,3 +75,14 @@ jobs:
             git commit -m "Verrouillage des dépendances et SQL des tables [skip ci]"
             git push
           fi
+
+      - name: Publier le journal (branche ci-logs)
+        if: always()
+        run: |
+          cp ci.log /tmp/ci.log 2>/dev/null || echo "pas de journal" > /tmp/ci.log
+          cd /tmp && rm -rf logsrepo && mkdir logsrepo && cd logsrepo
+          git init -q && git checkout -q -b ci-logs
+          cp /tmp/ci.log ci.log
+          echo "${{ github.sha }} ${{ job.status }}" > status.txt
+          git add . && git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Journal ${{ github.sha }}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ci-logs
