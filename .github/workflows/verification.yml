@@ -49,7 +49,7 @@ jobs:
         run: |
           exec > >(tee -a "$GITHUB_WORKSPACE/ci.log") 2>&1
           # Types des bindings et du runtime Workers générés depuis wrangler.jsonc
-          npx wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts
+          npx wrangler types --env-interface CloudflareEnv --strict-vars=false cloudflare-env.d.ts
           npx tsc --noEmit
 
       - name: Tests
