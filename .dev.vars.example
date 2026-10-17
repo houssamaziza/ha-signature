@@ -1,0 +1,2 @@
+# Secrets pour le développement local (`npm run preview`). Copier en .dev.vars.
+EMAIL_API_KEY=""

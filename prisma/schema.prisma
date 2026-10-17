@@ -1,0 +1,265 @@
+// Schéma de données H&A Signature.
+// Pensé pour plusieurs programmes immobiliers et pour être partagé
+// entre le site Next.js et la future application mobile (Expo) via l'API /api/v1.
+
+generator client {
+  provider        = "prisma-client-js"
+  // Requis pour Cloudflare D1 (SQLite) via @prisma/adapter-d1.
+  // Ne pas définir `output` : OpenNext doit pouvoir patcher le client généré.
+  previewFeatures = ["driverAdapters"]
+}
+
+// Base Cloudflare D1 (SQLite). L'URL ne sert qu'à la CLI Prisma (génération des migrations SQL).
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ─────────────────────────── Paramètres du site ───────────────────────────
+
+/// Ligne unique (id = 1) : coordonnées, identité, SEO et informations légales.
+model SiteSettings {
+  id              Int      @id @default(1)
+  siteName        String   @default("H&A Signature")
+  tagline         String   @default("Promotion immobilière")
+  accentColor     String   @default("#8A4B24")
+  phone           String
+  whatsappNumber  String   /// format international, ex. +213550333769
+  whatsappMessage String
+  email           String
+  officeAddress   String
+  seoTitle        String
+  seoDescription  String
+  /// Identifiants légaux (RC, NIF, agrément…) — validés par `legalInfoSchema`.
+  legal           Json     @default("{}")
+  updatedAt       DateTime @updatedAt
+}
+
+/// Blocs de contenu éditables (textes, boutons, photo) identifiés par une clé,
+/// ex. "home.hero". Le format de `data` est validé par les schémas Zod de
+/// `src/shared/schemas/content.ts`.
+model ContentBlock {
+  key       String   @id
+  data      Json
+  isVisible Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────── Programmes et logements ───────────────────────────
+
+model Project {
+  id                Int                 @id @default(autoincrement())
+  slug              String              @unique
+  name              String
+  district          String
+  city              String
+  deliveryLabel     String              /// ex. "janvier 2028"
+  currentPhaseOrder Int                 @default(1)
+  progressUpdatedAt DateTime?
+  features          Json                @default("[]") /// atouts affichés sur le site (tableau de textes)
+  coverMediaId      Int?
+  coverMedia        Media?              @relation("ProjectCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  apartments        Apartment[]
+  phases            ConstructionPhase[]
+  progressPhotos    ProgressPhoto[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+enum ApartmentType {
+  F2
+  F3
+  F4
+  F5
+  PENTHOUSE
+}
+
+enum ApartmentView {
+  SEA
+  CITY
+}
+
+enum ApartmentStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+}
+
+model Apartment {
+  id             Int             @id @default(autoincrement())
+  projectId      Int
+  project        Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  number         Int             /// numéro affiché (01, 02…)
+  type           ApartmentType
+  surfaceM2      Int
+  /// Niveau : -1 = entresol, 0 = rez-de-chaussée, 1 = 1er étage…
+  floor          Int
+  view           ApartmentView
+  priceFromDa    Int?            /// prix "à partir de", en dinars
+  priceOnRequest Boolean         @default(false)
+  status         ApartmentStatus @default(AVAILABLE)
+  hasTerrace     Boolean         @default(false)
+  planMediaId    Int?
+  planMedia      Media?          @relation("ApartmentPlan", fields: [planMediaId], references: [id], onDelete: SetNull)
+  isPublished    Boolean         @default(true)
+  leads          Lead[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@unique([projectId, number])
+  @@index([projectId, status])
+}
+
+model ConstructionPhase {
+  id          Int     @id @default(autoincrement())
+  projectId   Int
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  order       Int
+  name        String
+  description String
+
+  @@unique([projectId, order])
+}
+
+model ProgressPhoto {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  mediaId   Int
+  media     Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  takenAt   DateTime
+  caption   String
+  createdAt DateTime @default(now())
+
+  @@index([projectId, takenAt])
+}
+
+// ─────────────────────────── Médias ───────────────────────────
+
+enum MediaCategory {
+  FACADE
+  INTERIOR
+  CONSTRUCTION
+  PLAN
+  LOGO
+  OTHER
+}
+
+model Media {
+  id             Int             @id @default(autoincrement())
+  url            String          /// chemin public, ex. /images/facade-avant.jpg
+  filename       String
+  mimeType       String
+  sizeBytes      Int
+  width          Int?
+  height         Int?
+  alt            String          @default("")
+  category       MediaCategory   @default(OTHER)
+  projectCovers  Project[]       @relation("ProjectCover")
+  apartmentPlans Apartment[]     @relation("ApartmentPlan")
+  progressPhotos ProgressPhoto[]
+  createdAt      DateTime        @default(now())
+}
+
+// ─────────────────────────── Demandes de contact ───────────────────────────
+
+enum LeadStatus {
+  NEW
+  CALLED
+  VISIT_SCHEDULED
+  ARCHIVED
+}
+
+model Lead {
+  id          Int        @id @default(autoincrement())
+  name        String
+  phone       String
+  email       String?
+  message     String?
+  apartmentId Int?
+  apartment   Apartment? @relation(fields: [apartmentId], references: [id], onDelete: SetNull)
+  /// Consentement explicite (loi 18-07) et date de recueil.
+  consentAt   DateTime
+  status      LeadStatus @default(NEW)
+  source      String     @default("website") /// website | mobile-app
+  country     String?    /// code ISO déduit de l'hébergeur/CDN, jamais l'IP
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([status, createdAt])
+}
+
+// ─────────────────────────── Mesure d'audience ───────────────────────────
+
+enum DeviceType {
+  MOBILE
+  TABLET
+  DESKTOP
+}
+
+/// Une page vue. Aucune adresse IP n'est enregistrée : le pays et la ville
+/// proviennent des en-têtes du CDN (Cloudflare / Vercel) au moment de la visite.
+model PageView {
+  id           Int        @id @default(autoincrement())
+  path         String
+  visitorId    String     /// identifiant aléatoire, stocké chez le visiteur après consentement
+  country      String?    /// code ISO à 2 lettres
+  city         String?
+  device       DeviceType
+  source       String     /// google | social | whatsapp | direct | <domaine>
+  referrerHost String?
+  createdAt    DateTime   @default(now())
+
+  @@index([createdAt])
+  @@index([country, createdAt])
+}
+
+// ─────────────────────────── Comptes (étape 2 : administration) ───────────────────────────
+
+enum Role {
+  ADMIN
+  EDITOR
+}
+
+/// Comptes partagés par le site et la future application mobile.
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         Role      @default(EDITOR)
+  isActive     Boolean   @default(true)
+  sessions     Session[]
+  resetTokens  PasswordResetToken[]
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+/// Sessions opaques : cookie httpOnly pour le web, jeton Bearer pour le mobile.
+/// Seul le hash SHA-256 du jeton est stocké.
+model Session {
+  id         String   @id /// sha256(jeton)
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client     String   @default("web") /// web | mobile
+  userAgent  String?
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  lastUsedAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/// Lien de réinitialisation du mot de passe (1 h, usage unique). Seul le SHA-256 est stocké.
+model PasswordResetToken {
+  id        String    @id /// sha256(jeton)
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}

@@ -1,0 +1,38 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "ha-signature",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-13",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": { "enabled": true },
+  "upload_source_maps": true,
+
+  // Base de données (Prisma + @prisma/adapter-d1)
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ha-signature",
+      "database_id": "923909d0-bb11-46b4-a77e-bf15ed6664cd",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  // Photos et plans envoyés depuis l'administration
+  "kv_namespaces": [
+    { "binding": "MEDIA", "id": "6881b8a82b2a47a583e24115a41abf70" }
+  ],
+
+  // Variables publiques (les secrets se règlent avec `wrangler secret put`)
+  "vars": {
+    "SITE_URL": "https://ha-signature.houssam-aziza.workers.dev",
+    "DEFAULT_PROJECT_SLUG": "la-caroube-2",
+    "EMAIL_PROVIDER": "console",
+    "EMAIL_FROM": "H&A Signature <noreply@hasignature.com>",
+    "LEAD_NOTIFICATION_EMAILS": "info@hasignature.com",
+    "LEAD_ACKNOWLEDGEMENT": "false"
+  }
+}

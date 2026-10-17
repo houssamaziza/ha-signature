@@ -1,0 +1,47 @@
+{
+  "name": "ha-signature",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Site et API de H&A Signature — promotion immobilière à Annaba (Cloudflare Workers + D1)",
+  "engines": {
+    "node": ">=20.18"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "preview": "prisma generate && opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "prisma generate && opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "typecheck": "prisma generate && tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:migration:sql": "prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script",
+    "db:migrate:local": "wrangler d1 migrations apply ha-signature --local",
+    "db:migrate:remote": "wrangler d1 migrations apply ha-signature --remote",
+    "db:seed:sql": "tsx scripts/seed-d1.ts > .seed.sql",
+    "db:seed:local": "npm run db:seed:sql && wrangler d1 execute ha-signature --local --file .seed.sql",
+    "db:seed:remote": "npm run db:seed:sql && wrangler d1 execute ha-signature --remote --file .seed.sql"
+  },
+  "dependencies": {
+    "@opennextjs/cloudflare": "latest",
+    "@prisma/adapter-d1": "^6.16.0",
+    "@prisma/client": "^6.16.0",
+    "next": "^15.5.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.0.0",
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "prisma": "^6.16.0",
+    "tailwindcss": "^4.1.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0",
+    "wrangler": "latest"
+  }
+}

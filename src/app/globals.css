@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+/*
+ * Jetons de design H&A Signature (repris des maquettes).
+ * --accent est injecté par le layout racine depuis les paramètres du site,
+ * pour que la couleur des boutons se change depuis l'administration.
+ */
+:root {
+  --accent: #8a4b24;
+}
+
+@theme inline {
+  --color-accent: var(--accent);
+  --color-stone: #f3efe7;
+  --color-paper: #fbf9f5;
+  --color-sand: #e7e0d3;
+  --color-line: #d9d1c3;
+  --color-card-line: #e2dacc;
+  --color-photo: #cfc6b6;
+  --color-ink: #1d2422;
+  --color-ink-soft: #3a433f;
+  --color-body: #444a45;
+  --color-muted: #5a5f58;
+  --color-copper: #d9a57f;
+  --color-whatsapp: #25d366;
+  --color-whatsapp-ink: #0b2e1a;
+
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-sans: var(--font-manrope), "Helvetica Neue", Arial, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-stone font-sans text-ink antialiased;
+  }
+  a {
+    color: var(--accent);
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+@utility eyebrow {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}

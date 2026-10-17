@@ -1,0 +1,63 @@
+# Vérifie chaque modification : installation, typage, tests et construction Cloudflare.
+# Au premier passage, enregistre aussi package-lock.json et le SQL des tables (migrations/).
+name: Vérification
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: verification-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Installation
+        run: |
+          if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
+          npm ls next react @opennextjs/cloudflare wrangler prisma @prisma/client @prisma/adapter-d1 zod vitest --depth=0 || true
+
+      - name: Prisma (client + SQL des tables)
+        run: |
+          npx prisma generate
+          mkdir -p migrations
+          if [ ! -s migrations/0001_init.sql ]; then
+            npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > migrations/0001_init.sql
+          fi
+          cat migrations/0001_init.sql
+
+      - name: Typage
+        run: npx tsc --noEmit
+
+      - name: Tests
+        run: npx vitest run
+
+      - name: Construction Cloudflare (OpenNext)
+        run: npx opennextjs-cloudflare build
+
+      - name: Taille du Worker
+        run: npx wrangler deploy --dry-run --outdir .bundle | tail -n 20
+
+      - name: Enregistrer package-lock.json et migrations
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json migrations
+          if ! git diff --cached --quiet; then
+            git commit -m "Verrouillage des dépendances et SQL des tables [skip ci]"
+            git push
+          fi
