@@ -48,6 +48,8 @@ jobs:
       - name: Typage
         run: |
           exec > >(tee -a "$GITHUB_WORKSPACE/ci.log") 2>&1
+          # Types des bindings et du runtime Workers générés depuis wrangler.jsonc
+          npx wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts
           npx tsc --noEmit
 
       - name: Tests
@@ -70,7 +72,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package-lock.json migrations
+          git add package-lock.json migrations cloudflare-env.d.ts
           if ! git diff --cached --quiet; then
             git commit -m "Verrouillage des dépendances et SQL des tables [skip ci]"
             git push
