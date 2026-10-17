@@ -35,7 +35,7 @@
     "LEAD_NOTIFICATION_EMAILS": "info@hasignature.com",
     "LEAD_ACKNOWLEDGEMENT": "false",
     // Verrou temporaire : sha256 du mot de passe d'accès au site. Supprimer cette ligne pour ouvrir le site au public.
-    "SITE_LOCK_HASH": "3ffa855266888df162412e04e8691eab3b66155b30bcb33b1e2591694edf2772",
-    "SITE_LOCK_COOKIE_CHECK": "c69c3e76378ce2f3d6712e22cf76d34048f65aa6cf9a8617eaf0e0f22757ea7e"
+    "SITE_LOCK_HASH": "0afb00138d8e73348ec1fe41fd3d3a8fcbd90156b263bfa5791ba0e095f42cfc",
+    "SITE_LOCK_COOKIE_CHECK": "5aefaab661622f75ba1b753867ad68ab22bc95d15a543e0161e9602cc213f5fc"
   }
 }

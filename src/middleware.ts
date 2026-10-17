@@ -116,7 +116,7 @@ export async function middleware(req: NextRequest) {
       let next = "/";
       try {
         const form = await req.formData();
-        password = String(form.get("password") ?? "");
+        password = String(form.get("password") ?? "").trim();
         next = safeNext(String(form.get("suite") ?? "/"));
       } catch {
         /* formulaire illisible : traité comme un mauvais mot de passe */
