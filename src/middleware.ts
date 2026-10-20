@@ -44,7 +44,7 @@ async function isUnlocked(req: NextRequest, lockHash: string, cookieCheck: strin
   if (header?.startsWith("Basic ")) {
     try {
       const decoded = atob(header.slice(6));
-      return passwordMatches(decoded.slice(decoded.indexOf(":") + 1), lockHash);
+      return passwordMatches(decoded.slice(decoded.indexOf(":") + 1).trim().toLowerCase(), lockHash);
     } catch {
       return false;
     }
@@ -116,7 +116,7 @@ export async function middleware(req: NextRequest) {
       let next = "/";
       try {
         const form = await req.formData();
-        password = String(form.get("password") ?? "").trim();
+        password = String(form.get("password") ?? "").trim().toLowerCase();
         next = safeNext(String(form.get("suite") ?? "/"));
       } catch {
         /* formulaire illisible : traité comme un mauvais mot de passe */
