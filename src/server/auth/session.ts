@@ -9,7 +9,8 @@ import { prisma } from "../db";
  * Seul le SHA-256 du jeton est stocké en base.
  */
 export const SESSION_COOKIE = "has_session";
-const TTL_MS = { web: 30 * 24 * 3600_000, mobile: 90 * 24 * 3600_000 } as const;
+// Connexion mémorisée 1 an sur l'appareil (déconnexion possible à tout moment depuis l'administration).
+const TTL_MS = { web: 365 * 24 * 3600_000, mobile: 365 * 24 * 3600_000 } as const;
 export type SessionClient = keyof typeof TTL_MS;
 
 export type SessionUser = { id: number; email: string; name: string; role: Role };
