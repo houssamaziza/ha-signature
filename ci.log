@@ -1,0 +1,440 @@
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+npm warn deprecated glob@10.3.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+
+> ha-signature@0.1.0 postinstall
+> node scripts/allow-next15.mjs
+
+[allow-next15] option --dangerouslyUseUnsupportedNextVersion activée par défaut.
+
+added 441 packages in 1m
+ha-signature@0.1.0 /home/runner/work/ha-signature/ha-signature
+├── @opennextjs/cloudflare@1.20.12
+├── @prisma/adapter-d1@6.19.3
+├── @prisma/client@6.19.3
+├── next@15.5.28
+├── prisma@6.19.3
+├── react@19.3.1
+├── vitest@3.2.7
+├── wrangler@4.151.1
+└── zod@4.6.7
+
+Prisma schema loaded from prisma/schema.prisma
+warn Preview feature "driverAdapters" is deprecated. The functionality can be used without specifying it as a preview feature.
+┌─────────────────────────────────────────────────────────┐
+│  Update available 6.19.3 -> 8.0.0-rc.27                 │
+│                                                         │
+│  This is a major update - please follow the guide at    │
+│  https://pris.ly/d/major-version-upgrade                │
+│                                                         │
+│  Run the following to update                            │
+│    npm i --save-dev prisma@latest                       │
+│    npm i @prisma/client@latest                          │
+└─────────────────────────────────────────────────────────┘
+
+✔ Generated Prisma Client (v6.19.3) to ./node_modules/@prisma/client in 69ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Want to turn off tips and other hints? https://pris.ly/tip-4-nohints
+
+-- CreateTable
+CREATE TABLE "SiteSettings" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT DEFAULT 1,
+    "siteName" TEXT NOT NULL DEFAULT 'H&A Signature',
+    "tagline" TEXT NOT NULL DEFAULT 'Promotion immobilière',
+    "accentColor" TEXT NOT NULL DEFAULT '#8A4B24',
+    "phone" TEXT NOT NULL,
+    "whatsappNumber" TEXT NOT NULL,
+    "whatsappMessage" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "officeAddress" TEXT NOT NULL,
+    "seoTitle" TEXT NOT NULL,
+    "seoDescription" TEXT NOT NULL,
+    "legal" JSONB NOT NULL DEFAULT '{}',
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "ContentBlock" (
+    "key" TEXT NOT NULL PRIMARY KEY,
+    "data" JSONB NOT NULL,
+    "isVisible" BOOLEAN NOT NULL DEFAULT true,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "Project" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "slug" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "district" TEXT NOT NULL,
+    "city" TEXT NOT NULL,
+    "deliveryLabel" TEXT NOT NULL,
+    "currentPhaseOrder" INTEGER NOT NULL DEFAULT 1,
+    "progressUpdatedAt" DATETIME,
+    "features" JSONB NOT NULL DEFAULT '[]',
+    "coverMediaId" INTEGER,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Project_coverMediaId_fkey" FOREIGN KEY ("coverMediaId") REFERENCES "Media" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Apartment" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "projectId" INTEGER NOT NULL,
+    "number" INTEGER NOT NULL,
+    "type" TEXT NOT NULL,
+    "surfaceM2" INTEGER NOT NULL,
+    "floor" INTEGER NOT NULL,
+    "view" TEXT NOT NULL,
+    "priceFromDa" INTEGER,
+    "priceOnRequest" BOOLEAN NOT NULL DEFAULT false,
+    "status" TEXT NOT NULL DEFAULT 'AVAILABLE',
+    "hasTerrace" BOOLEAN NOT NULL DEFAULT false,
+    "planMediaId" INTEGER,
+    "isPublished" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Apartment_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Apartment_planMediaId_fkey" FOREIGN KEY ("planMediaId") REFERENCES "Media" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "ConstructionPhase" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "projectId" INTEGER NOT NULL,
+    "order" INTEGER NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    CONSTRAINT "ConstructionPhase_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "ProgressPhoto" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "projectId" INTEGER NOT NULL,
+    "mediaId" INTEGER NOT NULL,
+    "takenAt" DATETIME NOT NULL,
+    "caption" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "ProgressPhoto_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "ProgressPhoto_mediaId_fkey" FOREIGN KEY ("mediaId") REFERENCES "Media" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Media" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "url" TEXT NOT NULL,
+    "filename" TEXT NOT NULL,
+    "mimeType" TEXT NOT NULL,
+    "sizeBytes" INTEGER NOT NULL,
+    "width" INTEGER,
+    "height" INTEGER,
+    "alt" TEXT NOT NULL DEFAULT '',
+    "category" TEXT NOT NULL DEFAULT 'OTHER',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "Lead" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
+    "email" TEXT,
+    "message" TEXT,
+    "apartmentId" INTEGER,
+    "consentAt" DATETIME NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'NEW',
+    "source" TEXT NOT NULL DEFAULT 'website',
+    "country" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Lead_apartmentId_fkey" FOREIGN KEY ("apartmentId") REFERENCES "Apartment" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "PageView" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "path" TEXT NOT NULL,
+    "visitorId" TEXT NOT NULL,
+    "country" TEXT,
+    "city" TEXT,
+    "device" TEXT NOT NULL,
+    "source" TEXT NOT NULL,
+    "referrerHost" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "User" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "email" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "passwordHash" TEXT NOT NULL,
+    "role" TEXT NOT NULL DEFAULT 'EDITOR',
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "lastLoginAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "Session" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "userId" INTEGER NOT NULL,
+    "client" TEXT NOT NULL DEFAULT 'web',
+    "userAgent" TEXT,
+    "expiresAt" DATETIME NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastUsedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "PasswordResetToken" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "userId" INTEGER NOT NULL,
+    "expiresAt" DATETIME NOT NULL,
+    "usedAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "PasswordResetToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Project_slug_key" ON "Project"("slug");
+
+-- CreateIndex
+CREATE INDEX "Apartment_projectId_status_idx" ON "Apartment"("projectId", "status");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Apartment_projectId_number_key" ON "Apartment"("projectId", "number");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ConstructionPhase_projectId_order_key" ON "ConstructionPhase"("projectId", "order");
+
+-- CreateIndex
+CREATE INDEX "ProgressPhoto_projectId_takenAt_idx" ON "ProgressPhoto"("projectId", "takenAt");
+
+-- CreateIndex
+CREATE INDEX "Lead_status_createdAt_idx" ON "Lead"("status", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "PageView_createdAt_idx" ON "PageView"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "PageView_country_createdAt_idx" ON "PageView"("country", "createdAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE INDEX "Session_userId_idx" ON "Session"("userId");
+
+-- CreateIndex
+CREATE INDEX "Session_expiresAt_idx" ON "Session"("expiresAt");
+
+-- CreateIndex
+CREATE INDEX "PasswordResetToken_userId_idx" ON "PasswordResetToken"("userId");
+
+
+ ⛅️ wrangler 4.151.1
+────────────────────
+Generating project types...
+
+interface __BaseEnv_CloudflareEnv {
+	MEDIA: KVNamespace;
+	DB: D1Database;
+	ASSETS: Fetcher;
+	SITE_URL: string;
+	DEFAULT_PROJECT_SLUG: string;
+	EMAIL_PROVIDER: string;
+	EMAIL_FROM: string;
+	LEAD_NOTIFICATION_EMAILS: string;
+	LEAD_ACKNOWLEDGEMENT: string;
+}
+declare namespace Cloudflare {
+	interface Env extends __BaseEnv_CloudflareEnv {}
+}
+interface CloudflareEnv extends __BaseEnv_CloudflareEnv {}
+type StringifyValues<EnvType extends Record<string, unknown>> = {
+	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
+};
+declare namespace NodeJS {
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "SITE_URL" | "DEFAULT_PROJECT_SLUG" | "EMAIL_PROVIDER" | "EMAIL_FROM" | "LEAD_NOTIFICATION_EMAILS" | "LEAD_ACKNOWLEDGEMENT">> {}
+}
+
+Generating runtime types...
+
+Runtime types generated.
+
+
+✨ Types written to cloudflare-env.d.ts
+
+📖 Read about runtime types
+https://developers.cloudflare.com/workers/languages/typescript/#generate-types
+📣 Remember to rerun 'wrangler types' after you change your wrangler.jsonc file.
+
+
+[1m[46m RUN [49m[22m [36mv3.2.7 [39m[90m/home/runner/work/ha-signature/ha-signature[39m
+
+ [32m✓[39m tests/shared/apartments.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/shared/schemas.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/server/security.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 55[2mms[22m[39m
+ [32m✓[39m tests/server/request-meta.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/shared/format.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[32m28 passed[39m[22m[90m (28)[39m
+[2m   Start at [22m 17:05:56
+[2m   Duration [22m 606ms[2m (transform 189ms, setup 0ms, collect 531ms, tests 71ms, environment 1ms, prepare 354ms)[22m
+
+
+┌─────────────────────────────┐
+│ OpenNext — Cloudflare build │
+└─────────────────────────────┘
+
+App directory: /home/runner/work/ha-signature/ha-signature
+Next.js version : 15.5.28
+WARN Next.js version 15.5.28 is not supported by the Next.js team.
+Major versions are supported for 2 years from their release date.
+Unsupported releases may contain unpatched security vulnerabilities.
+See https://nextjs.org/support-policy for more information.
+Continuing build due to --dangerouslyUseUnsupportedNextVersion flag.
+@opennextjs/cloudflare version: 1.20.12
+@opennextjs/aws version: 4.1.11
+workerd compatibility_date: 2026-10-13
+
+┌─────────────────────────────────┐
+│ OpenNext — Building Next.js app │
+└─────────────────────────────────┘
+
+
+> ha-signature@0.1.0 build
+> prisma generate && next build
+
+Prisma schema loaded from prisma/schema.prisma
+warn Preview feature "driverAdapters" is deprecated. The functionality can be used without specifying it as a preview feature.
+
+✔ Generated Prisma Client (v6.19.3) to ./node_modules/@prisma/client in 117ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Want to turn off tips and other hints? https://pris.ly/tip-4-nohints
+
+⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+   ▲ Next.js 15.5.28
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 7.4s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/24) ...
+   Generating static pages (6/24) 
+   Generating static pages (12/24) 
+   Generating static pages (18/24) 
+ ✓ Generating static pages (24/24)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ƒ /                                    2.39 kB         140 kB
+├ ƒ /_not-found                            215 B         103 kB
+├ ƒ /admin                                 175 B         106 kB
+├ ƒ /admin/appartements                  4.73 kB         107 kB
+├ ƒ /admin/avancement                     4.3 kB         112 kB
+├ ƒ /admin/connexion                     2.17 kB         114 kB
+├ ƒ /admin/contenus                      4.83 kB         113 kB
+├ ƒ /admin/demandes                      1.79 kB         108 kB
+├ ƒ /admin/medias                        5.63 kB         140 kB
+├ ƒ /admin/mot-de-passe-oublie           2.51 kB         109 kB
+├ ƒ /admin/parametres                    4.87 kB         108 kB
+├ ƒ /admin/reinitialiser                 2.53 kB         109 kB
+├ ƒ /admin/statistiques                    175 B         106 kB
+├ ƒ /api/health                            215 B         103 kB
+├ ƒ /api/v1/admin/apartments               215 B         103 kB
+├ ƒ /api/v1/admin/apartments/[id]          215 B         103 kB
+├ ƒ /api/v1/admin/content/[key]            215 B         103 kB
+├ ƒ /api/v1/admin/dashboard                215 B         103 kB
+├ ƒ /api/v1/admin/leads                    215 B         103 kB
+├ ƒ /api/v1/admin/leads/[id]               215 B         103 kB
+├ ƒ /api/v1/admin/leads/export             215 B         103 kB
+├ ƒ /api/v1/admin/media                    215 B         103 kB
+├ ƒ /api/v1/admin/media/[id]               215 B         103 kB
+├ ƒ /api/v1/admin/progress-photos/[id]     215 B         103 kB
+├ ƒ /api/v1/admin/project                  215 B         103 kB
+├ ƒ /api/v1/admin/project/photos           215 B         103 kB
+├ ƒ /api/v1/admin/settings                 215 B         103 kB
+├ ƒ /api/v1/admin/stats                    215 B         103 kB
+├ ƒ /api/v1/admin/users                    215 B         103 kB
+├ ƒ /api/v1/admin/users/[id]               215 B         103 kB
+├ ƒ /api/v1/analytics/pageview             215 B         103 kB
+├ ƒ /api/v1/apartments                     215 B         103 kB
+├ ƒ /api/v1/auth/login                     215 B         103 kB
+├ ƒ /api/v1/auth/logout                    215 B         103 kB
+├ ƒ /api/v1/auth/me                        215 B         103 kB
+├ ƒ /api/v1/auth/password                  215 B         103 kB
+├ ƒ /api/v1/auth/password-reset/confirm    215 B         103 kB
+├ ƒ /api/v1/auth/password-reset/request    215 B         103 kB
+├ ƒ /api/v1/leads                          215 B         103 kB
+├ ƒ /api/v1/projects/[slug]                215 B         103 kB
+├ ƒ /api/v1/settings                       215 B         103 kB
+├ ƒ /appartements                          176 B         112 kB
+├ ƒ /avancement                            176 B         112 kB
+├ ƒ /contact                             2.38 kB         135 kB
+├ ƒ /media/[file]                          215 B         103 kB
+├ ƒ /mentions-legales                      175 B         106 kB
+├ ○ /robots.txt                            215 B         103 kB
+└ ○ /sitemap.xml                           215 B         103 kB
++ First Load JS shared by all             103 kB
+  ├ chunks/1255-dc3ddf72a1dc71a7.js      46.6 kB
+  ├ chunks/4bd1b696-f785427dddbba9fb.js  54.2 kB
+  └ other shared chunks (total)          1.93 kB
+
+
+ƒ Middleware                               36 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+┌──────────────────────────────┐
+│ OpenNext — Generating bundle │
+└──────────────────────────────┘
+
+Bundling middleware function...
+Bundling static assets...
+Bundling cache assets...
+Building server function: default...
+Applying code patches: 2.710s
+# copyPackageTemplateFiles
+[35m⚙️ Bundling the OpenNext server...
+[0m
+[35mWorker saved in `.open-next/worker.js` 🚀
+[0m
+OpenNext build complete.
+
+ ⛅️ wrangler 4.151.1
+────────────────────
+
+Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+✨ Read 149 files from the assets directory /home/runner/work/ha-signature/ha-signature/.open-next/assets
+Total Upload: 9164.14 KiB / gzip: 2177.28 KiB
+Your Worker has access to the following bindings:
+Binding                                                                        Resource                  
+env.MEDIA (74b39905aa574d53ba82dd0c828e3f48)                                   KV Namespace              
+env.DB (ha-signature)                                                          D1 Database               
+env.ASSETS                                                                     Assets                    
+env.SITE_URL ("https://ha-signature.houssam-aziza-03...")                      Environment Variable      
+env.DEFAULT_PROJECT_SLUG ("la-caroube-2")                                      Environment Variable      
+env.EMAIL_PROVIDER ("console")                                                 Environment Variable      
+env.EMAIL_FROM ("H&A Signature <noreply@hasignature.com>")                     Environment Variable      
+env.LEAD_NOTIFICATION_EMAILS ("info@hasignature.com")                          Environment Variable      
+env.LEAD_ACKNOWLEDGEMENT ("false")                                             Environment Variable      
+
+--dry-run: exiting now.
