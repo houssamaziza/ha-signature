@@ -33,9 +33,6 @@
     "EMAIL_PROVIDER": "console",
     "EMAIL_FROM": "H&A Signature <noreply@hasignature.com>",
     "LEAD_NOTIFICATION_EMAILS": "info@hasignature.com",
-    "LEAD_ACKNOWLEDGEMENT": "false",
-    // Verrou temporaire : sha256 du mot de passe d'accès au site. Supprimer cette ligne pour ouvrir le site au public.
-    "SITE_LOCK_HASH": "25f43b1486ad95a1398e3eeb3d83bc4010015fcc9bedb35b432e00298d5021f7",
-    "SITE_LOCK_COOKIE_CHECK": "8ae87a9210ca1c91cc441074735779e9a9182922fe53993b8693156ff5ec35fa"
+    "LEAD_ACKNOWLEDGEMENT": "false"
   }
 }
