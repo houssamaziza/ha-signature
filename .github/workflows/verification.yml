@@ -60,6 +60,8 @@ jobs:
       - name: Construction Cloudflare (OpenNext)
         run: |
           exec > >(tee -a "$GITHUB_WORKSPACE/ci.log") 2>&1
+          echo "=== DIAG version check ==="
+          grep -rn "is not supported by the Next.js team\|dangerouslyUseUnsupportedNextVersion\|supported for 2 years" node_modules/@opennextjs node_modules/next/dist/build 2>/dev/null | cut -c1-400 | head -20 || true
           npx opennextjs-cloudflare build
 
       - name: Taille du Worker
